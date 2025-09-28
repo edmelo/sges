@@ -20,6 +20,7 @@ Este repositório contém o projeto do Sistema de Gestão Escolar (SGES). A prim
   - `email`: formato válido quando informado
 - Tratamento global de erros com payload consistente.
 - Testes de integração cobrindo criação, busca/lista e matrícula duplicada.
+- Interface Web (SPA simples em HTML/JS) para gerenciar alunos.
 
 ## Como executar
 Pré-requisitos: JDK 21 instalado e disponível no PATH.
@@ -29,10 +30,12 @@ Pré-requisitos: JDK 21 instalado e disponível no PATH.
 mvnw.cmd clean test
 ```
 
-2) Subir a aplicação (porta 8080)
+2) Subir a aplicação (porta 8081)
 ```cmd
 mvnw.cmd spring-boot:run
 ```
+
+Acesse a interface web em: http://localhost:8081/
 
 Opcional: empacotar e executar o JAR
 ```cmd
@@ -40,8 +43,13 @@ mvnw.cmd clean package
 java -jar target\sges-0.0.1-SNAPSHOT.jar
 ```
 
+### Interface Web (Alunos)
+- Local: `src/main/resources/static/index.html`
+- Funcionalidades: listar, filtrar, criar, editar e excluir alunos via API.
+- Erros de validação e conflitos (ex.: matrícula duplicada) são exibidos no formulário.
+
 ### Banco de Dados (H2)
-- Console H2: http://localhost:8080/h2-console
+- Console H2: http://localhost:8081/h2-console
 - JDBC URL: `jdbc:h2:mem:sges`
 - Usuário: `sa` | Senha: (vazio)
 
@@ -75,19 +83,20 @@ Base: `/api/alunos`
 ### Teste rápido via curl (Windows)
 Criar:
 ```cmd
-curl -X POST http://localhost:8080/api/alunos ^
+curl -X POST http://localhost:8081/api/alunos ^
   -H "Content-Type: application/json" ^
   -d "{\"nome\":\"Maria Souza\",\"matricula\":\"MAT-001\",\"dataNascimento\":\"2005-03-10\",\"email\":\"maria@example.com\",\"telefone\":\"(11) 99999-9999\"}"
 ```
 Listar:
 ```cmd
-curl http://localhost:8080/api/alunos
+curl http://localhost:8081/api/alunos
 ```
 
 ## Estrutura principal
 - `src/main/java/com/sges/sges/alunos` — entidade, controller, service e repository de Aluno
 - `src/main/java/com/sges/sges/common` — modelos e tratador global de erros
 - `src/test/java/com/sges/sges/alunos` — testes de integração do módulo
+- `src/main/resources/static/index.html` — interface web
 
 ## Notas de desenvolvimento
 - Banco em memória (H2) é recriado a cada inicialização.
@@ -101,4 +110,3 @@ curl http://localhost:8080/api/alunos
 - Relatórios
 - Comunicação
 - Financeiro
-

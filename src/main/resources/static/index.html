@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SGES - Alunos</title>
+  <style>
+    :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
+    html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; }
+    header h1 { margin:0; font-size:20px; }
+    main { padding:20px; max-width:1100px; margin:0 auto; }
+    .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+    .card + .card { margin-top:16px; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; }
+    .card-body { padding:16px; }
+    form .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .field { flex:1 1 240px; min-width:220px; }
+    label { display:block; font-size:12px; color:#444; margin-bottom:6px; }
+    input { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #c7ccd1; border-radius:6px; font-size:14px; }
+    input:focus { outline:2px solid var(--primary); border-color:var(--primary); }
+    .actions { display:flex; gap:10px; margin-top:12px; }
+    button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-secondary { background:#eaeef2; color:#111; }
+    .btn-danger { background:var(--danger); color:#fff; }
+    .btn-link { background:transparent; color:var(--primary); padding:6px 8px; border:none; }
+    .muted { color:var(--muted); }
+    table { border-collapse:collapse; width:100%; }
+    th, td { border-bottom:1px solid #e6ebf1; padding:10px 8px; text-align:left; font-size:14px; }
+    th { background:#f0f3f6; font-weight:600; }
+    tr:hover td { background:#fafbfc; }
+    .right { text-align:right; }
+    .errors { margin:0; padding-left:18px; color:var(--danger); }
+    .toast { position:fixed; right:20px; bottom:20px; background:#111; color:#fff; padding:10px 14px; border-radius:8px; opacity:0.95; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #c7ccd1; background:#fff; }
+    .hidden { display:none !important; }
+    @media (max-width: 720px) {
+      .right { text-align:left; }
+      .hide-sm { display:none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>SGES - Gestão de Alunos</h1>
+</header>
+<main>
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-header">
+      <span id="form-title">Cadastrar / Editar Aluno</span>
+      <span id="form-mode" class="badge" aria-live="polite">Novo</span>
+    </div>
+    <div class="card-body">
+      <form id="aluno-form" novalidate>
+        <input type="hidden" id="id" />
+        <div class="row">
+          <div class="field">
+            <label for="nome">Nome *</label>
+            <input id="nome" name="nome" type="text" required maxlength="120" placeholder="Nome completo" />
+          </div>
+          <div class="field">
+            <label for="matricula">Matrícula *</label>
+            <input id="matricula" name="matricula" type="text" required maxlength="30" placeholder="Ex: 2025A001" />
+          </div>
+          <div class="field">
+            <label for="dataNascimento">Data de Nascimento *</label>
+            <input id="dataNascimento" name="dataNascimento" type="date" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" maxlength="180" placeholder="email@exemplo.com" />
+          </div>
+          <div class="field">
+            <label for="telefone">Telefone</label>
+            <input id="telefone" name="telefone" type="text" maxlength="30" placeholder="(00) 00000-0000" />
+          </div>
+        </div>
+        <ul id="form-errors" class="errors hidden" aria-live="polite"></ul>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-clear" class="btn-secondary">Limpar</button>
+        </div>
+        <p class="muted">Campos marcados com * são obrigatórios.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-header">
+      <span id="list-title">Alunos Cadastrados</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="margin-bottom:8px; align-items:center;">
+        <div class="field" style="min-width:260px;">
+          <label for="filtro" class="muted">Filtro rápido (nome/matrícula)</label>
+          <input id="filtro" type="text" placeholder="Digite para filtrar..." />
+        </div>
+        <div class="right" style="flex:1;">
+          <button type="button" id="btn-recarregar" class="btn-secondary">Recarregar</button>
+        </div>
+      </div>
+      <div style="overflow:auto;">
+        <table aria-describedby="list-title">
+          <thead>
+          <tr>
+            <th class="hide-sm">ID</th>
+            <th>Nome</th>
+            <th>Matrícula</th>
+            <th>Data Nasc.</th>
+            <th class="hide-sm">E-mail</th>
+            <th class="hide-sm">Telefone</th>
+            <th class="right">Ações</th>
+          </tr>
+          </thead>
+          <tbody id="tbody-alunos">
+          <tr><td colspan="7" class="muted">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+  const api = {
+    base: '', // mesma origem
+    list: () => fetch(`/api/alunos`).then(r => okJson(r)),
+    get: (id) => fetch(`/api/alunos/${id}`).then(r => okJson(r)),
+    create: (data) => fetch(`/api/alunos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    update: (id, data) => fetch(`/api/alunos/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    remove: (id) => fetch(`/api/alunos/${id}`, { method:'DELETE' }).then(r => okVoid(r)),
+  };
+
+  function okJson(resp){
+    if(resp.ok) return resp.json();
+    return resp.json().catch(() => ({ message: resp.statusText })).then(err => Promise.reject(err));
+  }
+  function okVoid(resp){
+    if(resp.ok) return;
+    return resp.json().catch(() => ({ message: resp.statusText })).then(err => Promise.reject(err));
+  }
+
+  // State
+  let alunos = [];
+
+  // DOM refs
+  const tbody = document.getElementById('tbody-alunos');
+  const filtro = document.getElementById('filtro');
+  const form = document.getElementById('aluno-form');
+  const formErrors = document.getElementById('form-errors');
+  const formMode = document.getElementById('form-mode');
+  const toast = document.getElementById('toast');
+
+  // Form inputs
+  const $id = document.getElementById('id');
+  const $nome = document.getElementById('nome');
+  const $matricula = document.getElementById('matricula');
+  const $data = document.getElementById('dataNascimento');
+  const $email = document.getElementById('email');
+  const $telefone = document.getElementById('telefone');
+
+  document.getElementById('btn-recarregar').addEventListener('click', carregar);
+  document.getElementById('btn-clear').addEventListener('click', () => setForm());
+  filtro.addEventListener('input', () => render());
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    // client-side check required fields
+    if(!$nome.value.trim() || !$matricula.value.trim() || !$data.value){
+      showErrors(['Preencha os campos obrigatórios.']);
+      return;
+    }
+
+    const payload = {
+      nome: $nome.value.trim(),
+      matricula: $matricula.value.trim(),
+      dataNascimento: $data.value, // ISO yyyy-MM-dd (LocalDate)
+      email: $email.value.trim() || null,
+      telefone: $telefone.value.trim() || null,
+    };
+
+    try {
+      if($id.value){
+        const updated = await api.update($id.value, payload);
+        alunos = alunos.map(a => a.id === updated.id ? updated : a);
+        showToast('Aluno atualizado com sucesso.');
+      } else {
+        const created = await api.create(payload);
+        alunos.push(created);
+        showToast('Aluno criado com sucesso.');
+      }
+      setForm();
+      render();
+    } catch (err) {
+      handleApiError(err);
+    }
+  });
+
+  function handleApiError(err){
+    // err shape: { message, errors?: [{field, message}], status?, ... }
+    const msgs = [];
+    if(err.errors && Array.isArray(err.errors) && err.errors.length){
+      for(const fe of err.errors){
+        msgs.push(`${fe.field}: ${fe.message}`);
+      }
+    }
+    if(err.message){ msgs.unshift(err.message); }
+    if(!msgs.length){ msgs.push('Erro inesperado.'); }
+    showErrors(msgs);
+  }
+
+  function showErrors(messages){
+    formErrors.innerHTML = messages.map(m => `<li>${escapeHtml(m)}</li>`).join('');
+    formErrors.classList.remove('hidden');
+  }
+  function clearErrors(){
+    formErrors.innerHTML = '';
+    formErrors.classList.add('hidden');
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  function setForm(a){
+    clearErrors();
+    if(!a){
+      $id.value = '';
+      $nome.value = '';
+      $matricula.value = '';
+      $data.value = '';
+      $email.value = '';
+      $telefone.value = '';
+      formMode.textContent = 'Novo';
+    } else {
+      $id.value = a.id;
+      $nome.value = a.nome ?? '';
+      $matricula.value = a.matricula ?? '';
+      $data.value = a.dataNascimento ?? '';
+      $email.value = a.email ?? '';
+      $telefone.value = a.telefone ?? '';
+      formMode.textContent = `Editando #${a.id}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function render(){
+    const q = (filtro.value || '').trim().toLowerCase();
+    const lista = !q ? alunos : alunos.filter(a =>
+      (a.nome||'').toLowerCase().includes(q) || (a.matricula||'').toLowerCase().includes(q)
+    );
+
+    if(!lista.length){
+      tbody.innerHTML = `<tr><td colspan="7" class="muted">Nenhum aluno encontrado.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = lista.map(a => `
+      <tr>
+        <td class="hide-sm">${a.id}</td>
+        <td>${escapeHtml(a.nome||'')}</td>
+        <td>${escapeHtml(a.matricula||'')}</td>
+        <td>${formatDateBR(a.dataNascimento)}</td>
+        <td class="hide-sm">${escapeHtml(a.email||'')}</td>
+        <td class="hide-sm">${escapeHtml(a.telefone||'')}</td>
+        <td class="right">
+          <button class="btn-link" title="Editar" onclick='onEditar(${JSON.stringify(a.id)})'>Editar</button>
+          <button class="btn-link" title="Excluir" onclick='onExcluir(${JSON.stringify(a.id)})'>Excluir</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function formatDateBR(iso){
+    if(!iso) return '';
+    // Expecting yyyy-MM-dd
+    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(iso);
+    if(!m) return iso;
+    return `${m[2]}/${m[3]}/${m[1]}`;
+  }
+
+  async function onEditar(id){
+    try{
+      const a = await api.get(id);
+      setForm(a);
+    }catch(err){
+      showToast(err.message || 'Erro ao buscar aluno');
+    }
+  }
+
+  async function onExcluir(id){
+    const a = alunos.find(x => x.id === id);
+    const nome = a ? ` (${a.nome})` : '';
+    if(!confirm(`Confirma excluir o aluno #${id}${nome}?`)) return;
+    try{
+      await api.remove(id);
+      alunos = alunos.filter(x => x.id !== id);
+      render();
+      showToast('Aluno excluído.');
+      if($id.value == id){ setForm(); }
+    }catch(err){
+      showToast(err.message || 'Erro ao excluir aluno');
+    }
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.add('hidden'), 2500);
+  }
+
+  async function carregar(){
+    tbody.innerHTML = `<tr><td colspan="7" class="muted">Carregando...</td></tr>`;
+    try {
+      alunos = await api.list();
+    } catch (err) {
+      alunos = [];
+      showToast(err.message || 'Erro ao carregar alunos');
+    }
+    render();
+  }
+
+  // Inicialização
+  carregar();
+</script>
+</body>
+</html>
+
