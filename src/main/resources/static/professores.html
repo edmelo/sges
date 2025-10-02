@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SGES - Alunos</title>
+  <title>SGES - Professores</title>
   <style>
     :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
     html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
-    header { background:#0d1117; color:#fff; padding:16px 20px; }
-    header .bar { display:flex; gap:16px; align-items:center; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; display:flex; gap:16px; align-items:center; }
+    header h1 { margin:0; font-size:20px; flex:1; }
     header nav a { color:#c9d1d9; text-decoration:none; margin-left:12px; }
     header nav a:hover { color:#fff; text-decoration:underline; }
     main { padding:20px; max-width:1100px; margin:0 auto; }
     .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
     .card + .card { margin-top:16px; }
-    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; display:flex; gap:10px; align-items:center; }
     .card-body { padding:16px; }
     form .row { display:flex; gap:12px; flex-wrap:wrap; }
     .field { flex:1 1 240px; min-width:220px; }
@@ -25,7 +25,6 @@
     button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
     .btn-primary { background:var(--primary); color:#fff; }
     .btn-secondary { background:#eaeef2; color:#111; }
-    .btn-danger { background:var(--danger); color:#fff; }
     .btn-link { background:transparent; color:var(--primary); padding:6px 8px; border:none; }
     .muted { color:var(--muted); }
     table { border-collapse:collapse; width:100%; }
@@ -45,22 +44,20 @@
 </head>
 <body>
 <header>
-  <div class="bar">
-    <h1 style="margin:0; font-size:20px; flex:1;">SGES - Gestão de Alunos</h1>
-    <nav>
-      <a href="/" aria-current="page">Alunos</a>
-      <a href="/professores.html">Professores</a>
-    </nav>
-  </div>
+  <h1>SGES - Gestão de Professores</h1>
+  <nav>
+    <a href="/">Alunos</a>
+    <a href="/professores.html" aria-current="page">Professores</a>
+  </nav>
 </header>
 <main>
   <section class="card" aria-labelledby="form-title">
     <div class="card-header">
-      <span id="form-title">Cadastrar / Editar Aluno</span>
+      <span id="form-title">Cadastrar / Editar Professor</span>
       <span id="form-mode" class="badge" aria-live="polite">Novo</span>
     </div>
     <div class="card-body">
-      <form id="aluno-form" novalidate>
+      <form id="professor-form" novalidate>
         <input type="hidden" id="id" />
         <div class="row">
           <div class="field">
@@ -68,8 +65,8 @@
             <input id="nome" name="nome" type="text" required maxlength="120" placeholder="Nome completo" />
           </div>
           <div class="field">
-            <label for="matricula">Matrícula *</label>
-            <input id="matricula" name="matricula" type="text" required maxlength="30" placeholder="Ex: 2025A001" />
+            <label for="registro">Registro *</label>
+            <input id="registro" name="registro" type="text" required maxlength="30" placeholder="Ex: REG-2025-001" />
           </div>
           <div class="field">
             <label for="dataNascimento">Data de Nascimento *</label>
@@ -98,12 +95,12 @@
 
   <section class="card" aria-labelledby="list-title">
     <div class="card-header">
-      <span id="list-title">Alunos Cadastrados</span>
+      <span id="list-title">Professores Cadastrados</span>
     </div>
     <div class="card-body">
       <div class="row" style="margin-bottom:8px; align-items:center;">
         <div class="field" style="min-width:260px;">
-          <label for="filtro" class="muted">Filtro rápido (nome/matrícula)</label>
+          <label for="filtro" class="muted">Filtro rápido (nome/registro)</label>
           <input id="filtro" type="text" placeholder="Digite para filtrar..." />
         </div>
         <div class="right" style="flex:1;">
@@ -116,14 +113,14 @@
           <tr>
             <th class="hide-sm">ID</th>
             <th>Nome</th>
-            <th>Matrícula</th>
+            <th>Registro</th>
             <th>Data Nasc.</th>
             <th class="hide-sm">E-mail</th>
             <th class="hide-sm">Telefone</th>
             <th class="right">Ações</th>
           </tr>
           </thead>
-          <tbody id="tbody-alunos">
+          <tbody id="tbody-professores">
           <tr><td colspan="7" class="muted">Carregando...</td></tr>
           </tbody>
         </table>
@@ -134,12 +131,11 @@
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script>
   const api = {
-    base: '', // mesma origem
-    list: () => fetch(`/api/alunos`).then(r => okJson(r)),
-    get: (id) => fetch(`/api/alunos/${id}`).then(r => okJson(r)),
-    create: (data) => fetch(`/api/alunos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
-    update: (id, data) => fetch(`/api/alunos/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
-    remove: (id) => fetch(`/api/alunos/${id}`, { method:'DELETE' }).then(r => okVoid(r)),
+    list: () => fetch(`/api/professores`).then(r => okJson(r)),
+    get: (id) => fetch(`/api/professores/${id}`).then(r => okJson(r)),
+    create: (data) => fetch(`/api/professores`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    update: (id, data) => fetch(`/api/professores/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    remove: (id) => fetch(`/api/professores/${id}`, { method:'DELETE' }).then(r => okVoid(r)),
   };
 
   function okJson(resp){
@@ -151,21 +147,18 @@
     return resp.json().catch(() => ({ message: resp.statusText })).then(err => Promise.reject(err));
   }
 
-  // State
-  let alunos = [];
+  let professores = [];
 
-  // DOM refs
-  const tbody = document.getElementById('tbody-alunos');
+  const tbody = document.getElementById('tbody-professores');
   const filtro = document.getElementById('filtro');
-  const form = document.getElementById('aluno-form');
+  const form = document.getElementById('professor-form');
   const formErrors = document.getElementById('form-errors');
   const formMode = document.getElementById('form-mode');
   const toast = document.getElementById('toast');
 
-  // Form inputs
   const $id = document.getElementById('id');
   const $nome = document.getElementById('nome');
-  const $matricula = document.getElementById('matricula');
+  const $registro = document.getElementById('registro');
   const $data = document.getElementById('dataNascimento');
   const $email = document.getElementById('email');
   const $telefone = document.getElementById('telefone');
@@ -178,16 +171,15 @@
     e.preventDefault();
     clearErrors();
 
-    // client-side check required fields
-    if(!$nome.value.trim() || !$matricula.value.trim() || !$data.value){
+    if(!$nome.value.trim() || !$registro.value.trim() || !$data.value){
       showErrors(['Preencha os campos obrigatórios.']);
       return;
     }
 
     const payload = {
       nome: $nome.value.trim(),
-      matricula: $matricula.value.trim(),
-      dataNascimento: $data.value, // ISO yyyy-MM-dd (LocalDate)
+      registro: $registro.value.trim(),
+      dataNascimento: $data.value,
       email: $email.value.trim() || null,
       telefone: $telefone.value.trim() || null,
     };
@@ -195,12 +187,12 @@
     try {
       if($id.value){
         const updated = await api.update($id.value, payload);
-        alunos = alunos.map(a => a.id === updated.id ? updated : a);
-        showToast('Aluno atualizado com sucesso.');
+        professores = professores.map(p => p.id === updated.id ? updated : p);
+        showToast('Professor atualizado com sucesso.');
       } else {
         const created = await api.create(payload);
-        alunos.push(created);
-        showToast('Aluno criado com sucesso.');
+        professores.push(created);
+        showToast('Professor criado com sucesso.');
       }
       setForm();
       render();
@@ -210,12 +202,9 @@
   });
 
   function handleApiError(err){
-    // err shape: { message, errors?: [{field, message}], status?, ... }
     const msgs = [];
     if(err.errors && Array.isArray(err.errors) && err.errors.length){
-      for(const fe of err.errors){
-        msgs.push(`${fe.field}: ${fe.message}`);
-      }
+      for(const fe of err.errors){ msgs.push(`${fe.field}: ${fe.message}`); }
     }
     if(err.message){ msgs.unshift(err.message); }
     if(!msgs.length){ msgs.push('Erro inesperado.'); }
@@ -235,50 +224,50 @@
     return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
 
-  function setForm(a){
+  function setForm(p){
     clearErrors();
-    if(!a){
+    if(!p){
       $id.value = '';
       $nome.value = '';
-      $matricula.value = '';
+      $registro.value = '';
       $data.value = '';
       $email.value = '';
       $telefone.value = '';
       formMode.textContent = 'Novo';
     } else {
-      $id.value = a.id;
-      $nome.value = a.nome ?? '';
-      $matricula.value = a.matricula ?? '';
-      $data.value = a.dataNascimento ?? '';
-      $email.value = a.email ?? '';
-      $telefone.value = a.telefone ?? '';
-      formMode.textContent = `Editando #${a.id}`;
+      $id.value = p.id;
+      $nome.value = p.nome ?? '';
+      $registro.value = p.registro ?? '';
+      $data.value = p.dataNascimento ?? '';
+      $email.value = p.email ?? '';
+      $telefone.value = p.telefone ?? '';
+      formMode.textContent = `Editando #${p.id}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function render(){
     const q = (filtro.value || '').trim().toLowerCase();
-    const lista = !q ? alunos : alunos.filter(a =>
-      (a.nome||'').toLowerCase().includes(q) || (a.matricula||'').toLowerCase().includes(q)
+    const lista = !q ? professores : professores.filter(p =>
+      (p.nome||'').toLowerCase().includes(q) || (p.registro||'').toLowerCase().includes(q)
     );
 
     if(!lista.length){
-      tbody.innerHTML = `<tr><td colspan="7" class="muted">Nenhum aluno encontrado.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="muted">Nenhum professor encontrado.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = lista.map(a => `
+    tbody.innerHTML = lista.map(p => `
       <tr>
-        <td class="hide-sm">${a.id}</td>
-        <td>${escapeHtml(a.nome||'')}</td>
-        <td>${escapeHtml(a.matricula||'')}</td>
-        <td>${formatDateBR(a.dataNascimento)}</td>
-        <td class="hide-sm">${escapeHtml(a.email||'')}</td>
-        <td class="hide-sm">${escapeHtml(a.telefone||'')}</td>
+        <td class="hide-sm">${p.id}</td>
+        <td>${escapeHtml(p.nome||'')}</td>
+        <td>${escapeHtml(p.registro||'')}</td>
+        <td>${formatDateBR(p.dataNascimento)}</td>
+        <td class="hide-sm">${escapeHtml(p.email||'')}</td>
+        <td class="hide-sm">${escapeHtml(p.telefone||'')}</td>
         <td class="right">
-          <button class="btn-link" title="Editar" onclick='onEditar(${JSON.stringify(a.id)})'>Editar</button>
-          <button class="btn-link" title="Excluir" onclick='onExcluir(${JSON.stringify(a.id)})'>Excluir</button>
+          <button class="btn-link" title="Editar" onclick='onEditar(${JSON.stringify(p.id)})'>Editar</button>
+          <button class="btn-link" title="Excluir" onclick='onExcluir(${JSON.stringify(p.id)})'>Excluir</button>
         </td>
       </tr>
     `).join('');
@@ -286,34 +275,27 @@
 
   function formatDateBR(iso){
     if(!iso) return '';
-    // Expecting yyyy-MM-dd
     const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(iso);
     if(!m) return iso;
     return `${m[2]}/${m[3]}/${m[1]}`;
   }
 
   async function onEditar(id){
-    try{
-      const a = await api.get(id);
-      setForm(a);
-    }catch(err){
-      showToast(err.message || 'Erro ao buscar aluno');
-    }
+    try{ const p = await api.get(id); setForm(p); }
+    catch(err){ showToast(err.message || 'Erro ao buscar professor'); }
   }
 
   async function onExcluir(id){
-    const a = alunos.find(x => x.id === id);
-    const nome = a ? ` (${a.nome})` : '';
-    if(!confirm(`Confirma excluir o aluno #${id}${nome}?`)) return;
+    const p = professores.find(x => x.id === id);
+    const nome = p ? ` (${p.nome})` : '';
+    if(!confirm(`Confirma excluir o professor #${id}${nome}?`)) return;
     try{
       await api.remove(id);
-      alunos = alunos.filter(x => x.id !== id);
+      professores = professores.filter(x => x.id !== id);
       render();
-      showToast('Aluno excluído.');
+      showToast('Professor excluído.');
       if($id.value == id){ setForm(); }
-    }catch(err){
-      showToast(err.message || 'Erro ao excluir aluno');
-    }
+    }catch(err){ showToast(err.message || 'Erro ao excluir professor'); }
   }
 
   function showToast(msg){
@@ -325,17 +307,13 @@
 
   async function carregar(){
     tbody.innerHTML = `<tr><td colspan="7" class="muted">Carregando...</td></tr>`;
-    try {
-      alunos = await api.list();
-    } catch (err) {
-      alunos = [];
-      showToast(err.message || 'Erro ao carregar alunos');
-    }
+    try { professores = await api.list(); }
+    catch (err) { professores = []; showToast(err.message || 'Erro ao carregar professores'); }
     render();
   }
 
-  // Inicialização
   carregar();
 </script>
 </body>
 </html>
+
