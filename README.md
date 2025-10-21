@@ -1,6 +1,6 @@
 # SGES - Sistema de Gestão Escolar
 
-Este repositório contém o projeto do Sistema de Gestão Escolar (SGES). As primeiras sprints implementam os módulos de Cadastro de Alunos e Cadastro de Professores com API REST, validações e persistência em banco em memória (H2).
+Este repositório contém o projeto do Sistema de Gestão Escolar (SGES). As primeiras sprints implementam os módulos de Cadastro de Alunos, Cadastro de Professores e Cadastro/Gestão de Turmas com API REST, validações e persistência em banco em memória (H2).
 
 ## Tecnologias
 - Java 21
@@ -34,6 +34,18 @@ Este repositório contém o projeto do Sistema de Gestão Escolar (SGES). As pri
   - `dataNascimento`: obrigatório e no passado
   - `email`: formato válido quando informado
 - Testes de integração cobrindo criação, busca/lista e registro duplicado.
+- Interface Web (SPA simples em HTML/JS) para gerenciar professores.
+
+### Cadastro e Gestão de Turmas
+- Entidade `Turma` com campos: `id`, `nome`, `codigo` (único), `descricao` (opcional), `capacidade` (> 0).
+- DTOs (`TurmaRequest`, `TurmaResponse`).
+- Camadas Repository, Service e Controller.
+- Validações:
+  - `nome`: obrigatório
+  - `codigo`: obrigatório e único (409 quando duplicado)
+  - `capacidade`: obrigatória e positiva (> 0)
+- Testes de integração cobrindo criação, busca/lista e código duplicado.
+- Interface Web (HTML/JS) para listar, filtrar, criar, editar e excluir turmas.
 
 ## Como executar
 Pré-requisitos: JDK 21 instalado e disponível no PATH.
@@ -66,7 +78,13 @@ java -jar target\sges-0.0.1-SNAPSHOT.jar
 - Local: `src/main/resources/static/professores.html`
 - URL: `http://localhost:8081/professores.html`
 - Funcionalidades: listar, filtrar, criar, editar e excluir professores via API.
-- Navegação: na barra superior há links para alternar entre Alunos e Professores.
+- Navegação: links para alternar entre Alunos, Professores e Turmas.
+
+### Interface Web (Turmas)
+- Local: `src/main/resources/static/turmas.html`
+- URL: `http://localhost:8081/turmas.html`
+- Funcionalidades: listar, filtrar, criar, editar e excluir turmas via API.
+- Regras: capacidade deve ser maior que zero.
 
 ### Banco de Dados (H2)
 - Console H2: http://localhost:8081/h2-console
@@ -113,13 +131,31 @@ Exemplo de requisição (POST):
 }
 ```
 
+### Turmas
+Base: `/api/turmas`
+- POST `/api/turmas` — cria uma turma
+- GET `/api/turmas/{id}` — busca por id
+- GET `/api/turmas` — lista todas
+- PUT `/api/turmas/{id}` — atualiza uma turma
+- DELETE `/api/turmas/{id}` — remove uma turma
+
+Exemplo de requisição (POST):
+```json
+{
+  "nome": "Turma 1A",
+  "codigo": "T-1A-2025",
+  "descricao": "Turma do primeiro ano - A",
+  "capacidade": 35
+}
+```
+
 ### Respostas comuns
 - 201 Created (Location com URL do recurso) ao criar
 - 200 OK ao buscar/listar/atualizar
 - 204 No Content ao deletar
 - 400 Bad Request para erros de validação (payload inclui `errors` com os campos)
 - 404 Not Found quando não existir
-- 409 Conflict para chave única duplicada (`matricula` para alunos, `registro` para professores)
+- 409 Conflict para chave única duplicada (`matricula` para alunos, `registro` para professores, `codigo` para turmas)
 
 ### Testes rápidos via curl (Windows)
 Alunos — Criar:
@@ -144,21 +180,34 @@ Professores — Listar:
 curl http://localhost:8081/api/professores
 ```
 
+Turmas — Criar:
+```cmd
+curl -X POST http://localhost:8081/api/turmas ^
+  -H "Content-Type: application/json" ^
+  -d "{\"nome\":\"Turma 1A\",\"codigo\":\"T-1A-2025\",\"descricao\":\"Turma do primeiro ano - A\",\"capacidade\":35}"
+```
+Turmas — Listar:
+```cmd
+curl http://localhost:8081/api/turmas
+```
+
 ## Estrutura principal
 - `src/main/java/com/sges/sges/alunos` — entidade, controller, service e repository de Aluno
 - `src/main/java/com/sges/sges/professores` — entidade, controller, service e repository de Professor
+- `src/main/java/com/sges/sges/turmas` — entidade, controller, service e repository de Turma
 - `src/main/java/com/sges/sges/common` — modelos e tratador global de erros
 - `src/test/java/com/sges/sges/alunos` — testes de integração do módulo Alunos
 - `src/test/java/com/sges/sges/professores` — testes de integração do módulo Professores
+- `src/test/java/com/sges/sges/turmas` — testes de integração do módulo Turmas
 - `src/main/resources/static/index.html` — interface web (Alunos)
 - `src/main/resources/static/professores.html` — interface web (Professores)
+- `src/main/resources/static/turmas.html` — interface web (Turmas)
 
 ## Notas de desenvolvimento
 - Banco em memória (H2) é recriado a cada inicialização.
 - O console do H2 está habilitado em `/h2-console` para facilitar inspeção durante o desenvolvimento.
 
 ## Próximas sprints (roadmap)
-- Gestão de Turmas
 - Notas e Avaliações
 - Frequência
 - Relatórios
