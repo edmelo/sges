@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SGES - Avaliações e Notas</title>
+  <style>
+    :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
+    html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; display:flex; gap:16px; align-items:center; }
+    header h1 { margin:0; font-size:20px; flex:1; }
+    header nav a { color:#c9d1d9; text-decoration:none; margin-left:12px; }
+    header nav a:hover { color:#fff; text-decoration:underline; }
+    main { padding:20px; max-width:1200px; margin:0 auto; }
+    .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+    .card + .card { margin-top:16px; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; display:flex; gap:10px; align-items:center; }
+    .card-body { padding:16px; }
+    form .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .field { flex:1 1 220px; min-width:200px; }
+    label { display:block; font-size:12px; color:#444; margin-bottom:6px; }
+    input, select { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #c7ccd1; border-radius:6px; font-size:14px; }
+    input:focus, select:focus { outline:2px solid var(--primary); border-color:var(--primary); }
+    .actions { display:flex; gap:10px; margin-top:12px; }
+    button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-secondary { background:#eaeef2; color:#111; }
+    .btn-link { background:transparent; color:var(--primary); padding:6px 8px; border:none; }
+    .muted { color:var(--muted); }
+    table { border-collapse:collapse; width:100%; }
+    th, td { border-bottom:1px solid #e6ebf1; padding:10px 8px; text-align:left; font-size:14px; }
+    th { background:#f0f3f6; font-weight:600; }
+    tr:hover td { background:#fafbfc; }
+    .right { text-align:right; }
+    .errors { margin:0; padding-left:18px; color:var(--danger); }
+    .toast { position:fixed; right:20px; bottom:20px; background:#111; color:#fff; padding:10px 14px; border-radius:8px; opacity:0.95; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #c7ccd1; background:#fff; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>SGES - Avaliações e Notas</h1>
+  <nav>
+    <a href="/">Alunos</a>
+    <a href="/professores.html">Professores</a>
+    <a href="/turmas.html">Turmas</a>
+    <a href="/avaliacoes.html" aria-current="page">Avaliações</a>
+  </nav>
+</header>
+<main>
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-header">
+      <span id="form-title">Cadastrar / Editar Avaliação</span>
+      <span id="form-mode" class="badge" aria-live="polite">Nova</span>
+    </div>
+    <div class="card-body">
+      <form id="avaliacao-form" novalidate>
+        <input type="hidden" id="id" />
+        <div class="row">
+          <div class="field"><label for="titulo">Título *</label><input id="titulo" required maxlength="120" placeholder="Ex: Prova 1"/></div>
+          <div class="field"><label for="data">Data *</label><input id="data" type="date" required /></div>
+          <div class="field"><label for="turmaId">Turma (ID) *</label><input id="turmaId" type="number" required min="1" placeholder="ID da turma"/></div>
+          <div class="field"><label for="peso">Peso (1-100)</label><input id="peso" type="number" min="1" max="100" placeholder="Opcional"/></div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:2 1 460px;"><label for="descricao">Descrição</label><input id="descricao" maxlength="255" placeholder="Conteúdo, observações..."/></div>
+        </div>
+        <ul id="form-errors" class="errors hidden" aria-live="polite"></ul>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-clear" class="btn-secondary">Limpar</button>
+        </div>
+        <p class="muted">Informe um ID de turma válido (consulte em Turmas).</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-header"><span id="list-title">Avaliações</span></div>
+    <div class="card-body">
+      <div style="overflow:auto;">
+        <table>
+          <thead><tr><th>ID</th><th>Título</th><th>Data</th><th>Turma</th><th>Peso</th><th class="right">Ações</th></tr></thead>
+          <tbody id="tbody-av"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="notas-card" aria-labelledby="notas-title">
+    <div class="card-header"><span id="notas-title">Notas da Avaliação</span><span class="badge" id="sel-av"></span></div>
+    <div class="card-body">
+      <form id="nota-form" class="hidden" novalidate>
+        <input type="hidden" id="notaId" />
+        <div class="row">
+          <div class="field"><label for="alunoId">Aluno (ID) *</label><input id="alunoId" type="number" required min="1" /></div>
+          <div class="field"><label for="valor">Nota (0-10) *</label><input id="valor" type="number" required step="0.25" min="0" max="10" /></div>
+          <div class="field" style="flex:2 1 460px;"><label for="obs">Observação</label><input id="obs" maxlength="255" /></div>
+        </div>
+        <ul id="nota-errors" class="errors hidden" aria-live="polite"></ul>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Salvar Nota</button>
+          <button type="button" id="btn-nota-clear" class="btn-secondary">Limpar</button>
+        </div>
+      </form>
+      <div style="overflow:auto; margin-top:10px;">
+        <table>
+          <thead><tr><th>ID</th><th>Aluno</th><th>Valor</th><th>Obs</th><th class="right">Ações</th></tr></thead>
+          <tbody id="tbody-notas"><tr><td colspan="5" class="muted">Selecione uma avaliação.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+  const apiA = {
+    list: () => fetch(`/api/avaliacoes`).then(r=>okJson(r)),
+    get: (id) => fetch(`/api/avaliacoes/${id}`).then(r=>okJson(r)),
+    create: (d) => fetch(`/api/avaliacoes`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}).then(r=>okJson(r)),
+    update: (id, d) => fetch(`/api/avaliacoes/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}).then(r=>okJson(r)),
+    remove: (id) => fetch(`/api/avaliacoes/${id}`, {method:'DELETE'}).then(r=>okVoid(r)),
+  };
+  const apiN = {
+    list: (av) => fetch(`/api/avaliacoes/${av}/notas`).then(r=>okJson(r)),
+    create: (av, d) => fetch(`/api/avaliacoes/${av}/notas`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}).then(r=>okJson(r)),
+    update: (av, id, d) => fetch(`/api/avaliacoes/${av}/notas/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}).then(r=>okJson(r)),
+    remove: (av, id) => fetch(`/api/avaliacoes/${av}/notas/${id}`, {method:'DELETE'}).then(r=>okVoid(r)),
+  };
+  function okJson(resp){ if(resp.ok) return resp.json(); return resp.json().catch(()=>({message:resp.statusText})).then(e=>Promise.reject(e)); }
+  function okVoid(resp){ if(resp.ok) return; return resp.json().catch(()=>({message:resp.statusText})).then(e=>Promise.reject(e)); }
+
+  let avaliacoes=[]; let selAv=null; let notas=[];
+  const tbodyAv=document.getElementById('tbody-av');
+  const tbodyNotas=document.getElementById('tbody-notas');
+  const form=document.getElementById('avaliacao-form');
+  const formErrors=document.getElementById('form-errors');
+  const formMode=document.getElementById('form-mode');
+  const toast=document.getElementById('toast');
+
+  const $id=document.getElementById('id');
+  const $titulo=document.getElementById('titulo');
+  const $data=document.getElementById('data');
+  const $turmaId=document.getElementById('turmaId');
+  const $peso=document.getElementById('peso');
+  const $descricao=document.getElementById('descricao');
+
+  const notaForm=document.getElementById('nota-form');
+  const notaErrors=document.getElementById('nota-errors');
+  const $notaId=document.getElementById('notaId');
+  const $alunoId=document.getElementById('alunoId');
+  const $valor=document.getElementById('valor');
+  const $obs=document.getElementById('obs');
+  const $selAv=document.getElementById('sel-av');
+
+  document.getElementById('btn-clear').addEventListener('click', ()=>setForm());
+  document.getElementById('btn-nota-clear').addEventListener('click', ()=>setNota());
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault(); clearErrors();
+    if(!$titulo.value.trim()||!$data.value||!$turmaId.value){ showErrors(['Preencha título, data e turma.']); return; }
+    const payload = {
+      titulo:$titulo.value.trim(), descricao:$descricao.value.trim()||null, data:$data.value,
+      turmaId: Number($turmaId.value), peso: $peso.value? Number($peso.value): null
+    };
+    try{
+      if($id.value){ const up=await apiA.update($id.value, payload); avaliacoes=avaliacoes.map(a=>a.id===up.id?up:a); showToast('Avaliação atualizada.'); }
+      else { const cr=await apiA.create(payload); avaliacoes.push(cr); showToast('Avaliação criada.'); }
+      setForm(); renderAv();
+    }catch(err){ handleApiError(err); }
+  });
+
+  notaForm.addEventListener('submit', async (e)=>{
+    e.preventDefault(); clearNotaErrors();
+    if(!selAv){ showToast('Selecione uma avaliação.'); return; }
+    if(!$alunoId.value||!$valor.value){ showNotaErrors(['Informe aluno e valor.']); return; }
+    const payload={ alunoId:Number($alunoId.value), valor:Number($valor.value), observacao:$obs.value.trim()||null };
+    try{
+      if($notaId.value){ const up=await apiN.update(selAv.id, $notaId.value, payload); notas=notas.map(n=>n.id===up.id?up:n); showToast('Nota atualizada.'); }
+      else { const cr=await apiN.create(selAv.id, payload); notas.push(cr); showToast('Nota lançada.'); }
+      setNota(); renderNotas();
+    }catch(err){ handleApiError(err, true); }
+  });
+
+  function handleApiError(err, nota=false){
+    const msgs=[]; if(err.errors&&Array.isArray(err.errors)){ for(const fe of err.errors){ msgs.push(`${fe.field}: ${fe.message}`);} }
+    if(err.message) msgs.unshift(err.message); if(!msgs.length) msgs.push('Erro inesperado.');
+    if(nota){ showNotaErrors(msgs);} else { showErrors(msgs);} }
+
+  function showErrors(messages){ formErrors.innerHTML=messages.map(m=>`<li>${escapeHtml(m)}</li>`).join(''); formErrors.classList.remove('hidden'); }
+  function clearErrors(){ formErrors.innerHTML=''; formErrors.classList.add('hidden'); }
+  function showNotaErrors(messages){ notaErrors.innerHTML=messages.map(m=>`<li>${escapeHtml(m)}</li>`).join(''); notaErrors.classList.remove('hidden'); }
+  function clearNotaErrors(){ notaErrors.innerHTML=''; notaErrors.classList.add('hidden'); }
+
+  function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function setForm(a){ clearErrors(); if(!a){ $id.value=''; $titulo.value=''; $data.value=''; $turmaId.value=''; $peso.value=''; $descricao.value=''; formMode.textContent='Nova'; }
+    else { $id.value=a.id; $titulo.value=a.titulo||''; $data.value=a.data||''; $turmaId.value=a.turmaId||''; $peso.value=a.peso||''; $descricao.value=a.descricao||''; formMode.textContent=`Editando #${a.id}`; window.scrollTo({top:0,behavior:'smooth'}); } }
+
+  function setNota(n){ clearNotaErrors(); if(!n){ $notaId.value=''; $alunoId.value=''; $valor.value=''; $obs.value=''; }
+    else { $notaId.value=n.id; $alunoId.value=n.alunoId||''; $valor.value=n.valor||''; $obs.value=n.observacao||''; }
+  }
+
+  function onEditar(id){ const a = avaliacoes.find(x=>x.id===id); if(a) setForm(a); }
+  async function onExcluir(id){ if(!confirm(`Excluir avaliação #${id}?`)) return; try{ await apiA.remove(id); avaliacoes=avaliacoes.filter(x=>x.id!==id); renderAv(); showToast('Avaliação excluída.'); if(selAv&&selAv.id===id){ selAv=null; notas=[]; renderNotas(); } }catch(err){ showToast(err.message||'Erro ao excluir'); } }
+  async function onNotas(id){ selAv = avaliacoes.find(x=>x.id===id); document.getElementById('nota-form').classList.remove('hidden'); $selAv.textContent = selAv ? `#${selAv.id} - ${selAv.titulo}` : ''; await carregarNotas(); }
+
+  async function carregar(){ tbodyAv.innerHTML = `<tr><td colspan="6" class="muted">Carregando...</td></tr>`; try{ avaliacoes = await apiA.list(); }catch(e){ avaliacoes=[]; showToast(e.message||'Falha ao carregar'); } renderAv(); }
+  async function carregarNotas(){ tbodyNotas.innerHTML = `<tr><td colspan="5" class="muted">Carregando...</td></tr>`; if(!selAv){ tbodyNotas.innerHTML = `<tr><td colspan="5" class="muted">Selecione uma avaliação.</td></tr>`; return; } try{ notas = await apiN.list(selAv.id); }catch(e){ notas=[]; showToast(e.message||'Falha ao carregar notas'); } renderNotas(); }
+
+  function renderAv(){ if(!avaliacoes.length){ tbodyAv.innerHTML = `<tr><td colspan="6" class="muted">Nenhuma avaliação.</td></tr>`; return; }
+    tbodyAv.innerHTML = avaliacoes.map(a=>`
+      <tr>
+        <td>${a.id}</td>
+        <td>${escapeHtml(a.titulo||'')}</td>
+        <td>${formatDateBR(a.data)}</td>
+        <td>${a.turmaId??''}</td>
+        <td>${a.peso??''}</td>
+        <td class="right">
+          <button class="btn-link" onclick="onNotas(${a.id})">Notas</button>
+          <button class="btn-link" onclick="onEditar(${a.id})">Editar</button>
+          <button class="btn-link" onclick="onExcluir(${a.id})">Excluir</button>
+        </td>
+      </tr>`).join(''); }
+
+  function renderNotas(){ if(!selAv){ tbodyNotas.innerHTML = `<tr><td colspan="5" class="muted">Selecione uma avaliação.</td></tr>`; notaForm.classList.add('hidden'); return; }
+    notaForm.classList.remove('hidden'); if(!notas.length){ tbodyNotas.innerHTML = `<tr><td colspan="5" class="muted">Sem notas nesta avaliação.</td></tr>`; return; }
+    tbodyNotas.innerHTML = notas.map(n=>`
+      <tr>
+        <td>${n.id}</td>
+        <td>${n.alunoId}</td>
+        <td>${n.valor}</td>
+        <td>${escapeHtml(n.observacao||'')}</td>
+        <td class="right">
+          <button class="btn-link" onclick='setNota(${JSON.stringify(n)})'>Editar</button>
+          <button class="btn-link" onclick='onExcluirNota(${JSON.stringify(n.id)})'>Excluir</button>
+        </td>
+      </tr>`).join(''); }
+
+  async function onExcluirNota(id){ if(!selAv) return; if(!confirm(`Excluir nota #${id}?`)) return; try{ await apiN.remove(selAv.id, id); notas = notas.filter(x=>x.id!==id); renderNotas(); showToast('Nota excluída.'); }catch(e){ showToast(e.message||'Erro ao excluir nota'); } }
+
+  function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.add('hidden'), 2500); }
+  function formatDateBR(iso){ if(!iso) return ''; const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); return m? `${m[2]}/${m[3]}/${m[1]}` : iso; }
+
+  carregar();
+</script>
+</body>
+</html>
+package com.sges.sges.avaliacoes;
+
+import com.sges.sges.turmas.Turma;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "avaliacoes")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Avaliacao {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Column(nullable = false, length = 120)
+    private String titulo;
+
+    @Size(max = 255)
+    @Column(length = 255)
+    private String descricao;
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDate data;
+
+    // Avaliação pertence a uma turma
+    @NotNull
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "turma_id", nullable = false, foreignKey = @ForeignKey(name = "fk_avaliacoes_turma"))
+    private Turma turma;
+
+    // Peso opcional (1..100)
+    @Min(1)
+    @Max(100)
+    @Column
+    private Integer peso;
+}
+

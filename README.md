@@ -47,6 +47,50 @@ Este repositório contém o projeto do Sistema de Gestão Escolar (SGES). As pri
 - Testes de integração cobrindo criação, busca/lista e código duplicado.
 - Interface Web (HTML/JS) para listar, filtrar, criar, editar e excluir turmas.
 
+## Módulo de Avaliações e Notas
+
+Funcionalidades:
+- CRUD de Avaliações (título, data, turma, descrição opcional, peso opcional 1..100)
+- Lançamento e gestão de Notas por Avaliação (valor 0.00..10.00, observação opcional)
+
+Entidades:
+- Avaliacao { id, titulo, descricao, data, turmaId, peso }
+- Nota { id, avaliacaoId, alunoId, valor, observacao }
+
+Endpoints
+- Avaliações (base `/api/avaliacoes`):
+  - POST `/` cria
+  - GET `/{id}` busca por id
+  - GET `/` lista (aceita `?turmaId=` opcional)
+  - PUT `/{id}` atualiza
+  - DELETE `/{id}` remove (bloqueado se possuir notas)
+- Notas (base `/api/avaliacoes/{avaliacaoId}/notas`):
+  - POST `/` cria nota para aluno
+  - GET `/` lista notas da avaliação
+  - PUT `/{notaId}` atualiza nota
+  - DELETE `/{notaId}` remove nota
+
+Validações e erros:
+- 400: validação de campos (mensagens por campo)
+- 404: turma/avaliação/aluno não encontrados
+- 409: duplicidade de nota (um aluno por avaliação) e exclusão de avaliação com notas
+
+UI estática
+- Página: `/avaliacoes.html`
+- Navegação adicionada nas páginas de Alunos, Professores e Turmas
+
+Exemplos (Windows cmd)
+
+```cmd
+curl -X POST http://localhost:8081/api/avaliacoes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"titulo\":\"Prova 1\",\"descricao\":\"Conteúdo A\",\"data\":\"2025-10-01\",\"turmaId\":1,\"peso\":30}"
+
+curl -X POST http://localhost:8081/api/avaliacoes/1/notas ^
+  -H "Content-Type: application/json" ^
+  -d "{\"alunoId\":1,\"valor\":8.5,\"observacao\":\"Boa prova\"}"
+```
+
 ## Como executar
 Pré-requisitos: JDK 21 instalado e disponível no PATH.
 
@@ -149,6 +193,41 @@ Exemplo de requisição (POST):
 }
 ```
 
+### Avaliações
+Base: `/api/avaliacoes`
+- POST `/api/avaliacoes` — cria uma avaliação
+- GET `/api/avaliacoes/{id}` — busca por id
+- GET `/api/avaliacoes` — lista todas (opcional: `?turmaId=`)
+- PUT `/api/avaliacoes/{id}` — atualiza uma avaliação
+- DELETE `/api/avaliacoes/{id}` — remove uma avaliação (bloqueado se tiver notas)
+
+Exemplo de requisição (POST):
+```json
+{
+  "titulo": "Prova 1",
+  "descricao": "Conteúdo A",
+  "data": "2025-10-01",
+  "turmaId": 1,
+  "peso": 30
+}
+```
+
+### Notas
+Base: `/api/avaliacoes/{avaliacaoId}/notas`
+- POST `/api/avaliacoes/{avaliacaoId}/notas` — cria uma nota para aluno
+- GET `/api/avaliacoes/{avaliacaoId}/notas` — lista notas da avaliação
+- PUT `/api/avaliacoes/{avaliacaoId}/notas/{notaId}` — atualiza uma nota
+- DELETE `/api/avaliacoes/{avaliacaoId}/notas/{notaId}` — remove uma nota
+
+Exemplo de requisição (POST):
+```json
+{
+  "alunoId": 1,
+  "valor": 8.5,
+  "observacao": "Boa prova"
+}
+```
+
 ### Respostas comuns
 - 201 Created (Location com URL do recurso) ao criar
 - 200 OK ao buscar/listar/atualizar
@@ -191,24 +270,48 @@ Turmas — Listar:
 curl http://localhost:8081/api/turmas
 ```
 
+Avaliações — Criar:
+```cmd
+curl -X POST http://localhost:8081/api/avaliacoes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"titulo\":\"Prova 1\",\"descricao\":\"Conteúdo A\",\"data\":\"2025-10-01\",\"turmaId\":1,\"peso\":30}"
+```
+Avaliações — Listar:
+```cmd
+curl http://localhost:8081/api/avaliacoes
+```
+
+Notas — Criar:
+```cmd
+curl -X POST http://localhost:8081/api/avaliacoes/1/notas ^
+  -H "Content-Type: application/json" ^
+  -d "{\"alunoId\":1,\"valor\":8.5,\"observacao\":\"Boa prova\"}"
+```
+Notas — Listar:
+```cmd
+curl http://localhost:8081/api/avaliacoes/1/notas
+```
+
 ## Estrutura principal
 - `src/main/java/com/sges/sges/alunos` — entidade, controller, service e repository de Aluno
 - `src/main/java/com/sges/sges/professores` — entidade, controller, service e repository de Professor
 - `src/main/java/com/sges/sges/turmas` — entidade, controller, service e repository de Turma
+- `src/main/java/com/sges/sges/avaliacoes` — entidade, controller, service e repository de Avaliação/Nota
 - `src/main/java/com/sges/sges/common` — modelos e tratador global de erros
 - `src/test/java/com/sges/sges/alunos` — testes de integração do módulo Alunos
 - `src/test/java/com/sges/sges/professores` — testes de integração do módulo Professores
 - `src/test/java/com/sges/sges/turmas` — testes de integração do módulo Turmas
+- `src/test/java/com/sges/sges/avaliacoes` — testes de integração do módulo Avaliações
 - `src/main/resources/static/index.html` — interface web (Alunos)
 - `src/main/resources/static/professores.html` — interface web (Professores)
 - `src/main/resources/static/turmas.html` — interface web (Turmas)
+- `src/main/resources/static/avaliacoes.html` — interface web (Avaliações)
 
 ## Notas de desenvolvimento
 - Banco em memória (H2) é recriado a cada inicialização.
 - O console do H2 está habilitado em `/h2-console` para facilitar inspeção durante o desenvolvimento.
 
 ## Próximas sprints (roadmap)
-- Notas e Avaliações
 - Frequência
 - Relatórios
 - Comunicação
