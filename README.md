@@ -91,6 +91,36 @@ curl -X POST http://localhost:8081/api/avaliacoes/1/notas ^
   -d "{\"alunoId\":1,\"valor\":8.5,\"observacao\":\"Boa prova\"}"
 ```
 
+## Módulo de Comunicação
+
+Funcionalidades:
+- Enviar/registrar comunicados para uma Turma ou para um Aluno específico
+- CRUD completo via API
+- Validações: título e conteúdo obrigatórios; data obrigatória; pelo menos um destinatário (alunoId ou turmaId)
+
+Entidade:
+- Comunicacao { id, titulo, conteudo, data, autor?, turmaId?, alunoId? }
+
+Endpoints (base `/api/comunicacoes`):
+- POST `/` cria
+- GET `/{id}` busca por id
+- GET `/` lista (aceita `?turmaId=` e `?alunoId=` opcionais)
+- PUT `/{id}` atualiza
+- DELETE `/{id}` remove
+
+Exemplos (Windows cmd)
+```cmd
+curl -X POST http://localhost:8081/api/comunicacoes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"titulo\":\"Aviso de Reunião\",\"conteudo\":\"Reunião amanhã às 10h\",\"data\":\"2025-10-05\",\"autor\":\"Coordenação\",\"turmaId\":1}"
+
+curl http://localhost:8081/api/comunicacoes?turmaId=1
+```
+
+UI estática
+- Página: `/comunicacoes.html`
+- Navegação adicionada nas páginas de Alunos, Professores, Turmas, Avaliações e Frequências
+
 ## Como executar
 Pré-requisitos: JDK 21 instalado e disponível no PATH.
 
@@ -228,6 +258,25 @@ Exemplo de requisição (POST):
 }
 ```
 
+### Comunicações
+Base: `/api/comunicacoes`
+- POST `/api/comunicacoes` — cria uma comunicação
+- GET `/api/comunicacoes/{id}` — busca por id
+- GET `/api/comunicacoes` — lista todas (opcional: `?turmaId=` ou `?alunoId=`)
+- PUT `/api/comunicacoes/{id}` — atualiza uma comunicação
+- DELETE `/api/comunicacoes/{id}` — remove uma comunicação
+
+Exemplo de requisição (POST):
+```json
+{
+  "titulo": "Aviso de Reunião",
+  "conteudo": "Reunião amanhã às 10h",
+  "data": "2025-10-05",
+  "autor": "Coordenação",
+  "turmaId": 1
+}
+```
+
 ### Respostas comuns
 - 201 Created (Location com URL do recurso) ao criar
 - 200 OK ao buscar/listar/atualizar
@@ -292,11 +341,23 @@ Notas — Listar:
 curl http://localhost:8081/api/avaliacoes/1/notas
 ```
 
+Comunicações — Criar:
+```cmd
+curl -X POST http://localhost:8081/api/comunicacoes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"titulo\":\"Aviso de Reunião\",\"conteudo\":\"Reunião amanhã às 10h\",\"data\":\"2025-10-05\",\"autor\":\"Coordenação\",\"turmaId\":1}"
+```
+Comunicações — Listar:
+```cmd
+curl http://localhost:8081/api/comunicacoes?turmaId=1
+```
+
 ## Estrutura principal
 - `src/main/java/com/sges/sges/alunos` — entidade, controller, service e repository de Aluno
 - `src/main/java/com/sges/sges/professores` — entidade, controller, service e repository de Professor
 - `src/main/java/com/sges/sges/turmas` — entidade, controller, service e repository de Turma
 - `src/main/java/com/sges/sges/avaliacoes` — entidade, controller, service e repository de Avaliação/Nota
+- `src/main/java/com/sges/sges/comunicacoes` — entidade, controller, service e repository de Comunicação
 - `src/main/java/com/sges/sges/common` — modelos e tratador global de erros
 - `src/test/java/com/sges/sges/alunos` — testes de integração do módulo Alunos
 - `src/test/java/com/sges/sges/professores` — testes de integração do módulo Professores
@@ -306,6 +367,7 @@ curl http://localhost:8081/api/avaliacoes/1/notas
 - `src/main/resources/static/professores.html` — interface web (Professores)
 - `src/main/resources/static/turmas.html` — interface web (Turmas)
 - `src/main/resources/static/avaliacoes.html` — interface web (Avaliações)
+- `src/main/resources/static/comunicacoes.html` — interface web (Comunicações)
 
 ## Notas de desenvolvimento
 - Banco em memória (H2) é recriado a cada inicialização.
