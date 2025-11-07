@@ -1,4 +1,4 @@
-# SGES - Sistema de Gestão Escolar (MVP Final)
+# SGES - Sistema de Gestão Escolar
 
 Sistema Web para gestão escolar com foco no módulo de Alunos, incluindo API REST, validações, persistência em banco em memória (H2) e interface web simples (SPA) servida pela própria aplicação.
 
