@@ -121,6 +121,36 @@ UI estática
 - Página: `/comunicacoes.html`
 - Navegação adicionada nas páginas de Alunos, Professores, Turmas, Avaliações e Frequências
 
+## Módulo Financeiro
+
+Funcionalidades:
+- CRUD de Pagamentos (aluno, referência única por aluno, valor, vencimento, dataPagamento opcional, status, observação)
+- Marcar pagamento como PAGO pela interface
+- Filtros por aluno, status e busca por referência/observação
+
+Entidade:
+- Pagamento { id, alunoId, referencia, valor, vencimento, dataPagamento?, status, observacao? }
+
+Endpoints (base `/api/pagamentos`):
+- POST `/` cria pagamento
+- GET `/{id}` busca por id
+- GET `/` lista todos (opcional: `?alunoId=`)
+- PUT `/{id}` atualiza pagamento
+- DELETE `/{id}` remove pagamento
+
+UI estática
+- Página: `/financeiro.html`
+- Navegação: link adicionado nas páginas de Alunos, Professores, Turmas, Avaliações, Frequências e Comunicações
+
+Exemplos (Windows cmd)
+```cmd
+curl -X POST http://localhost:8081/api/pagamentos ^
+  -H "Content-Type: application/json" ^
+  -d "{\"alunoId\":1,\"referencia\":\"2025-11\",\"valor\":750.00,\"vencimento\":\"2025-11-10\",\"status\":\"PENDENTE\"}"
+
+curl http://localhost:8081/api/pagamentos?alunoId=1
+```
+
 ## Como executar
 Pré-requisitos: JDK 21 instalado e disponível no PATH.
 
@@ -277,6 +307,25 @@ Exemplo de requisição (POST):
 }
 ```
 
+### Pagamentos
+Base: `/api/pagamentos`
+- POST `/api/pagamentos` — cria um pagamento
+- GET `/api/pagamentos/{id}` — busca por id
+- GET `/api/pagamentos` — lista todos (opcional: `?alunoId=`)
+- PUT `/api/pagamentos/{id}` — atualiza um pagamento
+- DELETE `/api/pagamentos/{id}` — remove um pagamento
+
+Exemplo de requisição (POST):
+```json
+{
+  "alunoId": 1,
+  "referencia": "2025-11",
+  "valor": 750.00,
+  "vencimento": "2025-11-10",
+  "status": "PENDENTE"
+}
+```
+
 ### Respostas comuns
 - 201 Created (Location com URL do recurso) ao criar
 - 200 OK ao buscar/listar/atualizar
@@ -352,22 +401,33 @@ Comunicações — Listar:
 curl http://localhost:8081/api/comunicacoes?turmaId=1
 ```
 
+Pagamentos — Criar:
+```cmd
+curl -X POST http://localhost:8081/api/pagamentos ^
+  -H "Content-Type: application/json" ^
+  -d "{\"alunoId\":1,\"referencia\":\"2025-11\",\"valor\":750.00,\"vencimento\":\"2025-11-10\",\"status\":\"PENDENTE\"}"
+```
+Pagamentos — Listar:
+```cmd
+curl http://localhost:8081/api/pagamentos?alunoId=1
+```
+
 ## Estrutura principal
 - `src/main/java/com/sges/sges/alunos` — entidade, controller, service e repository de Aluno
 - `src/main/java/com/sges/sges/professores` — entidade, controller, service e repository de Professor
 - `src/main/java/com/sges/sges/turmas` — entidade, controller, service e repository de Turma
 - `src/main/java/com/sges/sges/avaliacoes` — entidade, controller, service e repository de Avaliação/Nota
 - `src/main/java/com/sges/sges/comunicacoes` — entidade, controller, service e repository de Comunicação
+- `src/main/java/com/sges/sges/financeiro` — entidade, controller, service e repository de Pagamento
 - `src/main/java/com/sges/sges/common` — modelos e tratador global de erros
-- `src/test/java/com/sges/sges/alunos` — testes de integração do módulo Alunos
-- `src/test/java/com/sges/sges/professores` — testes de integração do módulo Professores
-- `src/test/java/com/sges/sges/turmas` — testes de integração do módulo Turmas
-- `src/test/java/com/sges/sges/avaliacoes` — testes de integração do módulo Avaliações
+- `src/test/java/com/sges/sges/financeiro` — testes de integração do módulo Financeiro
 - `src/main/resources/static/index.html` — interface web (Alunos)
 - `src/main/resources/static/professores.html` — interface web (Professores)
 - `src/main/resources/static/turmas.html` — interface web (Turmas)
 - `src/main/resources/static/avaliacoes.html` — interface web (Avaliações)
+- `src/main/resources/static/frequencias.html` — interface web (Frequências)
 - `src/main/resources/static/comunicacoes.html` — interface web (Comunicações)
+- `src/main/resources/static/financeiro.html` — interface web (Financeiro)
 
 ## Notas de desenvolvimento
 - Banco em memória (H2) é recriado a cada inicialização.

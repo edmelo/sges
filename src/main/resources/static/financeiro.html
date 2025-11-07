@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SGES - Financeiro</title>
+  <style>
+    :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
+    html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; display:flex; gap:16px; align-items:center; }
+    header h1 { margin:0; font-size:20px; flex:1; }
+    header nav a { color:#c9d1d9; text-decoration:none; margin-left:12px; }
+    header nav a:hover { color:#fff; text-decoration:underline; }
+    main { padding:20px; max-width:1200px; margin:0 auto; }
+    .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+    .card + .card { margin-top:16px; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; display:flex; gap:10px; align-items:center; }
+    .card-body { padding:16px; }
+    form .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .field { flex:1 1 220px; min-width:200px; }
+    label { display:block; font-size:12px; color:#444; margin-bottom:6px; }
+    input, select { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #c7ccd1; border-radius:6px; font-size:14px; }
+    input:focus, select:focus { outline:2px solid var(--primary); border-color:var(--primary); }
+    .actions { display:flex; gap:10px; margin-top:12px; }
+    button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-secondary { background:#eaeef2; color:#111; }
+    .btn-link { background:transparent; color:var(--primary); padding:6px 8px; border:none; }
+    .btn-danger { background:var(--danger); color:#fff; }
+    .muted { color:var(--muted); }
+    table { border-collapse:collapse; width:100%; }
+    th, td { border-bottom:1px solid #e6ebf1; padding:10px 8px; text-align:left; font-size:14px; }
+    th { background:#f0f3f6; font-weight:600; }
+    tr:hover td { background:#fafbfc; }
+    .right { text-align:right; }
+    .errors { margin:0; padding-left:18px; color:var(--danger); }
+    .toast { position:fixed; right:20px; bottom:20px; background:#111; color:#fff; padding:10px 14px; border-radius:8px; opacity:0.95; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #c7ccd1; background:#fff; }
+    .hidden { display:none !important; }
+    .status-tag { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #c7ccd1; }
+    .status-PAGO { background:#e8f5e9; color:#1b5e20; border-color:#c8e6c9; }
+    .status-PENDENTE { background:#fff8e1; color:#8d6e63; border-color:#ffe0b2; }
+    .status-ATRASADO { background:#ffebee; color:#b71c1c; border-color:#ffcdd2; }
+    .status-CANCELADO { background:#eceff1; color:#455a64; border-color:#cfd8dc; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>SGES - Financeiro</h1>
+  <nav>
+    <a href="/">Alunos</a>
+    <a href="/professores.html">Professores</a>
+    <a href="/turmas.html">Turmas</a>
+    <a href="/avaliacoes.html">Avaliações</a>
+    <a href="/frequencias.html">Frequências</a>
+    <a href="/comunicacoes.html">Comunicações</a>
+    <a href="/financeiro.html" aria-current="page">Financeiro</a>
+  </nav>
+</header>
+<main>
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-header">
+      <span id="form-title">Cadastrar / Editar Pagamento</span>
+      <span id="form-mode" class="badge" aria-live="polite">Novo</span>
+    </div>
+    <div class="card-body">
+      <form id="pg-form" novalidate>
+        <input type="hidden" id="id" />
+        <div class="row">
+          <div class="field">
+            <label for="alunoId">Aluno (ID) *</label>
+            <input id="alunoId" type="number" required min="1" placeholder="ID do aluno" />
+          </div>
+          <div class="field">
+            <label for="referencia">Referência *</label>
+            <input id="referencia" required maxlength="20" placeholder="Ex: 2025-11" />
+          </div>
+          <div class="field">
+            <label for="valor">Valor (R$) *</label>
+            <input id="valor" type="number" step="0.01" min="0.01" required placeholder="Ex: 750.00" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="vencimento">Vencimento *</label>
+            <input id="vencimento" type="date" required />
+          </div>
+          <div class="field">
+            <label for="dataPagamento">Data de Pagamento</label>
+            <input id="dataPagamento" type="date" />
+          </div>
+          <div class="field">
+            <label for="status">Status *</label>
+            <select id="status" required>
+              <option value="PENDENTE">Pendente</option>
+              <option value="PAGO">Pago</option>
+              <option value="ATRASADO">Atrasado</option>
+              <option value="CANCELADO">Cancelado</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:2 1 460px;">
+            <label for="observacao">Observação</label>
+            <input id="observacao" maxlength="255" placeholder="Opcional" />
+          </div>
+        </div>
+        <ul id="form-errors" class="errors hidden" aria-live="polite"></ul>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Salvar</button>
+          <button type="button" id="btn-clear" class="btn-secondary">Limpar</button>
+        </div>
+        <p class="muted">Campos marcados com * são obrigatórios. Referência deve ser única por aluno.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-header">
+      <span id="list-title">Pagamentos</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="margin-bottom:8px; align-items:center;">
+        <div class="field" style="max-width:220px;">
+          <label for="f-aluno" class="muted">Filtrar por Aluno (ID)</label>
+          <input id="f-aluno" type="number" min="1" placeholder="ID do aluno" />
+        </div>
+        <div class="field" style="max-width:220px;">
+          <label for="f-status" class="muted">Filtrar por Status</label>
+          <select id="f-status">
+            <option value="">Todos</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="PAGO">Pago</option>
+            <option value="ATRASADO">Atrasado</option>
+            <option value="CANCELADO">Cancelado</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1 1 300px;">
+          <label for="f-text" class="muted">Busca (referência/obs)</label>
+          <input id="f-text" type="text" placeholder="Digite para filtrar..." />
+        </div>
+        <div class="right" style="flex:0 0 auto;">
+          <button type="button" id="btn-filtrar" class="btn-secondary">Aplicar</button>
+          <button type="button" id="btn-recarregar" class="btn-secondary">Recarregar</button>
+        </div>
+      </div>
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Aluno</th>
+            <th>Referência</th>
+            <th class="right">Valor (R$)</th>
+            <th>Vencimento</th>
+            <th>Pagamento</th>
+            <th>Status</th>
+            <th class="hide-sm">Obs</th>
+            <th class="right">Ações</th>
+          </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+  const api = {
+    list: (alunoId) => fetch(alunoId ? `/api/pagamentos?alunoId=${encodeURIComponent(alunoId)}` : `/api/pagamentos`).then(okJson),
+    get: (id) => fetch(`/api/pagamentos/${id}`).then(okJson),
+    create: (d) => fetch(`/api/pagamentos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(d) }).then(okJson),
+    update: (id, d) => fetch(`/api/pagamentos/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(d) }).then(okJson),
+    remove: (id) => fetch(`/api/pagamentos/${id}`, { method:'DELETE' }).then(okVoid),
+  };
+  function okJson(resp){ if(resp.ok) return resp.json(); return resp.json().catch(()=>({message:resp.statusText})).then(e=>Promise.reject(e)); }
+  function okVoid(resp){ if(resp.ok) return; return resp.json().catch(()=>({message:resp.statusText})).then(e=>Promise.reject(e)); }
+
+  let pagamentos = [];
+
+  const tbody = document.getElementById('tbody');
+  const toast = document.getElementById('toast');
+  const form = document.getElementById('pg-form');
+  const formErrors = document.getElementById('form-errors');
+  const formMode = document.getElementById('form-mode');
+
+  const $id = document.getElementById('id');
+  const $alunoId = document.getElementById('alunoId');
+  const $referencia = document.getElementById('referencia');
+  const $valor = document.getElementById('valor');
+  const $vencimento = document.getElementById('vencimento');
+  const $dataPagamento = document.getElementById('dataPagamento');
+  const $status = document.getElementById('status');
+  const $observacao = document.getElementById('observacao');
+
+  const $fAluno = document.getElementById('f-aluno');
+  const $fStatus = document.getElementById('f-status');
+  const $fText = document.getElementById('f-text');
+
+  document.getElementById('btn-recarregar').addEventListener('click', carregar);
+  document.getElementById('btn-filtrar').addEventListener('click', render);
+  document.getElementById('btn-clear').addEventListener('click', ()=> setForm());
+  $fText.addEventListener('input', render);
+  $fStatus.addEventListener('change', render);
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault(); clearErrors();
+    if(!$alunoId.value || !$referencia.value.trim() || !$valor.value || !$vencimento.value || !$status.value){
+      showErrors(['Preencha os campos obrigatórios.']); return;
+    }
+
+    const payload = {
+      alunoId: Number($alunoId.value),
+      referencia: $referencia.value.trim(),
+      valor: Number($valor.value),
+      vencimento: $vencimento.value,
+      dataPagamento: $dataPagamento.value || null,
+      status: $status.value,
+      observacao: $observacao.value.trim() || null
+    };
+
+    try{
+      if($id.value){
+        const up = await api.update($id.value, payload);
+        pagamentos = pagamentos.map(p => p.id === up.id ? up : p);
+        showToast('Pagamento atualizado.');
+      } else {
+        const cr = await api.create(payload);
+        pagamentos.push(cr);
+        showToast('Pagamento criado.');
+      }
+      setForm();
+      render();
+    }catch(err){ handleApiError(err); }
+  });
+
+  function handleApiError(err){
+    const msgs = [];
+    if(err.errors && Array.isArray(err.errors)){
+      for(const fe of err.errors){ msgs.push(`${fe.field}: ${fe.message}`); }
+    }
+    if(err.message) msgs.unshift(err.message);
+    if(!msgs.length) msgs.push('Erro inesperado.');
+    showErrors(msgs);
+  }
+  function showErrors(messages){ formErrors.innerHTML = messages.map(m=>`<li>${escapeHtml(m)}</li>`).join(''); formErrors.classList.remove('hidden'); }
+  function clearErrors(){ formErrors.innerHTML=''; formErrors.classList.add('hidden'); }
+  function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.add('hidden'), 2500); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function setForm(p){
+    clearErrors();
+    if(!p){
+      $id.value=''; $alunoId.value=''; $referencia.value=''; $valor.value=''; $vencimento.value=''; $dataPagamento.value=''; $status.value='PENDENTE'; $observacao.value='';
+      formMode.textContent = 'Novo';
+    } else {
+      $id.value = p.id; $alunoId.value = p.alunoId ?? ''; $referencia.value = p.referencia ?? ''; $valor.value = p.valor ?? '';
+      $vencimento.value = p.vencimento ?? ''; $dataPagamento.value = p.dataPagamento ?? ''; $status.value = p.status ?? 'PENDENTE'; $observacao.value = p.observacao ?? '';
+      formMode.textContent = `Editando #${p.id}`; window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function formatDateBR(iso){ if(!iso) return ''; const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); return m ? `${m[2]}/${m[3]}/${m[1]}` : iso; }
+  function formatMoney(n){ if(n==null) return ''; try{ return Number(n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }catch{ return String(n); } }
+
+  function filtered(){
+    let list = [...pagamentos];
+    const aluno = $fAluno.value ? Number($fAluno.value) : null;
+    if(aluno) list = list.filter(p => p.alunoId === aluno);
+    const st = $fStatus.value; if(st) list = list.filter(p => p.status === st);
+    const q = ($fText.value || '').trim().toLowerCase();
+    if(q) list = list.filter(p => (p.referencia||'').toLowerCase().includes(q) || (p.observacao||'').toLowerCase().includes(q));
+    return list;
+  }
+
+  function render(){
+    const list = filtered();
+    if(!list.length){ tbody.innerHTML = `<tr><td colspan="9" class="muted">Nenhum pagamento encontrado.</td></tr>`; return; }
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.alunoId ?? ''}</td>
+        <td>${escapeHtml(p.referencia||'')}</td>
+        <td class="right">${formatMoney(p.valor)}</td>
+        <td>${formatDateBR(p.vencimento)}</td>
+        <td>${formatDateBR(p.dataPagamento)}</td>
+        <td><span class="status-tag status-${p.status}">${p.status}</span></td>
+        <td class="hide-sm">${escapeHtml(p.observacao||'')}</td>
+        <td class="right">
+          ${p.status !== 'PAGO' ? `<button class="btn-link" onclick='onMarcarPago(${JSON.stringify(p.id)})'>Marcar pago</button>` : ''}
+          <button class="btn-link" onclick='onEditar(${JSON.stringify(nullSafe(p))})'>Editar</button>
+          <button class="btn-link" onclick='onExcluir(${JSON.stringify(p.id)})'>Excluir</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function nullSafe(p){ return { id:p.id, alunoId:p.alunoId||'', referencia:p.referencia||'', valor:p.valor||'', vencimento:p.vencimento||'', dataPagamento:p.dataPagamento||'', status:p.status||'PENDENTE', observacao:p.observacao||''}; }
+
+  async function onEditar(p){ setForm(p); }
+  async function onExcluir(id){ if(!confirm(`Excluir pagamento #${id}?`)) return; try{ await api.remove(id); pagamentos = pagamentos.filter(x=>x.id!==id); render(); showToast('Pagamento excluído.'); if($id.value==id){ setForm(); } }catch(e){ showToast(e.message||'Erro ao excluir.'); } }
+  async function onMarcarPago(id){ try{ const p = pagamentos.find(x=>x.id===id); if(!p) return; const hoje = new Date(); const iso = hoje.toISOString().slice(0,10); const payload = { alunoId:p.alunoId, referencia:p.referencia, valor:p.valor, vencimento:p.vencimento, dataPagamento: iso, status:'PAGO', observacao:p.observacao||null };
+      const up = await api.update(id, payload); pagamentos = pagamentos.map(x=> x.id===id ? up : x); render(); showToast('Pagamento marcado como pago.'); } catch(e){ showToast(e.message||'Falha ao marcar como pago'); } }
+
+  async function carregar(){
+    tbody.innerHTML = `<tr><td colspan="9" class="muted">Carregando...</td></tr>`;
+    const alunoId = $fAluno.value ? Number($fAluno.value) : null;
+    try{ pagamentos = await api.list(alunoId); }catch(e){ pagamentos = []; showToast(e.message||'Erro ao carregar'); }
+    render();
+  }
+
+  carregar();
+</script>
+</body>
+</html>
