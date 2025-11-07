@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SGES - Alunos</title>
+  <title>SGES - Turmas</title>
   <style>
     :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
     html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
-    header { background:#0d1117; color:#fff; padding:16px 20px; }
-    header .bar { display:flex; gap:16px; align-items:center; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; display:flex; gap:16px; align-items:center; }
+    header h1 { margin:0; font-size:20px; flex:1; }
     header nav a { color:#c9d1d9; text-decoration:none; margin-left:12px; }
     header nav a:hover { color:#fff; text-decoration:underline; }
     main { padding:20px; max-width:1100px; margin:0 auto; }
     .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
     .card + .card { margin-top:16px; }
-    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; font-weight:600; display:flex; gap:10px; align-items:center; }
     .card-body { padding:16px; }
     form .row { display:flex; gap:12px; flex-wrap:wrap; }
     .field { flex:1 1 240px; min-width:220px; }
@@ -25,7 +25,6 @@
     button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
     .btn-primary { background:var(--primary); color:#fff; }
     .btn-secondary { background:#eaeef2; color:#111; }
-    .btn-danger { background:var(--danger); color:#fff; }
     .btn-link { background:transparent; color:var(--primary); padding:6px 8px; border:none; }
     .muted { color:var(--muted); }
     table { border-collapse:collapse; width:100%; }
@@ -45,50 +44,44 @@
 </head>
 <body>
 <header>
-  <div class="bar">
-    <h1 style="margin:0; font-size:20px; flex:1;">SGES - Gestão de Alunos</h1>
-    <nav>
-      <a href="/" aria-current="page">Alunos</a>
-      <a href="/professores.html">Professores</a>
-      <a href="/turmas.html">Turmas</a>
-      <a href="/avaliacoes.html">Avaliações</a>
-      <a href="/frequencias.html">Frequências</a>
-      <a href="/comunicacoes.html">Comunicações</a>
-      <a href="/financeiro.html">Financeiro</a>
-    </nav>
-  </div>
+  <h1>SGES - Gestão de Turmas</h1>
+  <nav>
+    <a href="/">Alunos</a>
+    <a href="/professores.html">Professores</a>
+    <a href="/turmas.html" aria-current="page">Turmas</a>
+    <a href="/avaliacoes.html">Avaliações</a>
+    <a href="/frequencias.html">Frequências</a>
+    <a href="/comunicacoes.html">Comunicações</a>
+    <a href="/financeiro.html">Financeiro</a>
+  </nav>
 </header>
 <main>
   <section class="card" aria-labelledby="form-title">
     <div class="card-header">
-      <span id="form-title">Cadastrar / Editar Aluno</span>
+      <span id="form-title">Cadastrar / Editar Turma</span>
       <span id="form-mode" class="badge" aria-live="polite">Novo</span>
     </div>
     <div class="card-body">
-      <form id="aluno-form" novalidate>
+      <form id="turma-form" novalidate>
         <input type="hidden" id="id" />
         <div class="row">
           <div class="field">
             <label for="nome">Nome *</label>
-            <input id="nome" name="nome" type="text" required maxlength="120" placeholder="Nome completo" />
+            <input id="nome" name="nome" type="text" required maxlength="120" placeholder="Ex: Turma 1A" />
           </div>
           <div class="field">
-            <label for="matricula">Matrícula *</label>
-            <input id="matricula" name="matricula" type="text" required maxlength="30" placeholder="Ex: 2025A001" />
+            <label for="codigo">Código *</label>
+            <input id="codigo" name="codigo" type="text" required maxlength="30" placeholder="Ex: T-1A-2025" />
           </div>
           <div class="field">
-            <label for="dataNascimento">Data de Nascimento *</label>
-            <input id="dataNascimento" name="dataNascimento" type="date" required />
+            <label for="capacidade">Capacidade *</label>
+            <input id="capacidade" name="capacidade" type="number" min="1" step="1" required placeholder="Ex: 35" />
           </div>
         </div>
         <div class="row">
-          <div class="field">
-            <label for="email">E-mail</label>
-            <input id="email" name="email" type="email" maxlength="180" placeholder="email@exemplo.com" />
-          </div>
-          <div class="field">
-            <label for="telefone">Telefone</label>
-            <input id="telefone" name="telefone" type="text" maxlength="30" placeholder="(00) 00000-0000" />
+          <div class="field" style="flex: 1 1 100%; min-width:300px;">
+            <label for="descricao">Descrição</label>
+            <input id="descricao" name="descricao" type="text" maxlength="255" placeholder="Descrição breve da turma" />
           </div>
         </div>
         <ul id="form-errors" class="errors hidden" aria-live="polite"></ul>
@@ -103,12 +96,12 @@
 
   <section class="card" aria-labelledby="list-title">
     <div class="card-header">
-      <span id="list-title">Alunos Cadastrados</span>
+      <span id="list-title">Turmas Cadastradas</span>
     </div>
     <div class="card-body">
       <div class="row" style="margin-bottom:8px; align-items:center;">
         <div class="field" style="min-width:260px;">
-          <label for="filtro" class="muted">Filtro rápido (nome/matrícula)</label>
+          <label for="filtro" class="muted">Filtro rápido (nome/código)</label>
           <input id="filtro" type="text" placeholder="Digite para filtrar..." />
         </div>
         <div class="right" style="flex:1;">
@@ -121,15 +114,14 @@
           <tr>
             <th class="hide-sm">ID</th>
             <th>Nome</th>
-            <th>Matrícula</th>
-            <th>Data Nasc.</th>
-            <th class="hide-sm">E-mail</th>
-            <th class="hide-sm">Telefone</th>
+            <th>Código</th>
+            <th>Capacidade</th>
+            <th class="hide-sm">Descrição</th>
             <th class="right">Ações</th>
           </tr>
           </thead>
-          <tbody id="tbody-alunos">
-          <tr><td colspan="7" class="muted">Carregando...</td></tr>
+          <tbody id="tbody-turmas">
+          <tr><td colspan="6" class="muted">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -139,12 +131,11 @@
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script>
   const api = {
-    base: '', // mesma origem
-    list: () => fetch(`/api/alunos`).then(r => okJson(r)),
-    get: (id) => fetch(`/api/alunos/${id}`).then(r => okJson(r)),
-    create: (data) => fetch(`/api/alunos`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
-    update: (id, data) => fetch(`/api/alunos/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
-    remove: (id) => fetch(`/api/alunos/${id}`, { method:'DELETE' }).then(r => okVoid(r)),
+    list: () => fetch(`/api/turmas`).then(r => okJson(r)),
+    get: (id) => fetch(`/api/turmas/${id}`).then(r => okJson(r)),
+    create: (data) => fetch(`/api/turmas`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    update: (id, data) => fetch(`/api/turmas/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) }).then(r => okJson(r)),
+    remove: (id) => fetch(`/api/turmas/${id}`, { method:'DELETE' }).then(r => okVoid(r)),
   };
 
   function okJson(resp){
@@ -156,24 +147,20 @@
     return resp.json().catch(() => ({ message: resp.statusText })).then(err => Promise.reject(err));
   }
 
-  // State
-  let alunos = [];
+  let turmas = [];
 
-  // DOM refs
-  const tbody = document.getElementById('tbody-alunos');
+  const tbody = document.getElementById('tbody-turmas');
   const filtro = document.getElementById('filtro');
-  const form = document.getElementById('aluno-form');
+  const form = document.getElementById('turma-form');
   const formErrors = document.getElementById('form-errors');
   const formMode = document.getElementById('form-mode');
   const toast = document.getElementById('toast');
 
-  // Form inputs
   const $id = document.getElementById('id');
   const $nome = document.getElementById('nome');
-  const $matricula = document.getElementById('matricula');
-  const $data = document.getElementById('dataNascimento');
-  const $email = document.getElementById('email');
-  const $telefone = document.getElementById('telefone');
+  const $codigo = document.getElementById('codigo');
+  const $capacidade = document.getElementById('capacidade');
+  const $descricao = document.getElementById('descricao');
 
   document.getElementById('btn-recarregar').addEventListener('click', carregar);
   document.getElementById('btn-clear').addEventListener('click', () => setForm());
@@ -183,29 +170,28 @@
     e.preventDefault();
     clearErrors();
 
-    // client-side check required fields
-    if(!$nome.value.trim() || !$matricula.value.trim() || !$data.value){
-      showErrors(['Preencha os campos obrigatórios.']);
+    const cap = parseInt($capacidade.value, 10);
+    if(!$nome.value.trim() || !$codigo.value.trim() || !cap || cap < 1){
+      showErrors(['Preencha os campos obrigatórios. Capacidade deve ser maior que zero.']);
       return;
     }
 
     const payload = {
       nome: $nome.value.trim(),
-      matricula: $matricula.value.trim(),
-      dataNascimento: $data.value, // ISO yyyy-MM-dd (LocalDate)
-      email: $email.value.trim() || null,
-      telefone: $telefone.value.trim() || null,
+      codigo: $codigo.value.trim(),
+      descricao: $descricao.value.trim() || null,
+      capacidade: cap
     };
 
     try {
       if($id.value){
         const updated = await api.update($id.value, payload);
-        alunos = alunos.map(a => a.id === updated.id ? updated : a);
-        showToast('Aluno atualizado com sucesso.');
+        turmas = turmas.map(t => t.id === updated.id ? updated : t);
+        showToast('Turma atualizada com sucesso.');
       } else {
         const created = await api.create(payload);
-        alunos.push(created);
-        showToast('Aluno criado com sucesso.');
+        turmas.push(created);
+        showToast('Turma criada com sucesso.');
       }
       setForm();
       render();
@@ -215,12 +201,9 @@
   });
 
   function handleApiError(err){
-    // err shape: { message, errors?: [{field, message}], status?, ... }
     const msgs = [];
     if(err.errors && Array.isArray(err.errors) && err.errors.length){
-      for(const fe of err.errors){
-        msgs.push(`${fe.field}: ${fe.message}`);
-      }
+      for(const fe of err.errors){ msgs.push(`${fe.field}: ${fe.message}`); }
     }
     if(err.message){ msgs.unshift(err.message); }
     if(!msgs.length){ msgs.push('Erro inesperado.'); }
@@ -240,85 +223,68 @@
     return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
 
-  function setForm(a){
+  function setForm(t){
     clearErrors();
-    if(!a){
+    if(!t){
       $id.value = '';
       $nome.value = '';
-      $matricula.value = '';
-      $data.value = '';
-      $email.value = '';
-      $telefone.value = '';
+      $codigo.value = '';
+      $capacidade.value = '';
+      $descricao.value = '';
       formMode.textContent = 'Novo';
     } else {
-      $id.value = a.id;
-      $nome.value = a.nome ?? '';
-      $matricula.value = a.matricula ?? '';
-      $data.value = a.dataNascimento ?? '';
-      $email.value = a.email ?? '';
-      $telefone.value = a.telefone ?? '';
-      formMode.textContent = `Editando #${a.id}`;
+      $id.value = t.id;
+      $nome.value = t.nome ?? '';
+      $codigo.value = t.codigo ?? '';
+      $capacidade.value = t.capacidade ?? '';
+      $descricao.value = t.descricao ?? '';
+      formMode.textContent = `Editando #${t.id}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   function render(){
     const q = (filtro.value || '').trim().toLowerCase();
-    const lista = !q ? alunos : alunos.filter(a =>
-      (a.nome||'').toLowerCase().includes(q) || (a.matricula||'').toLowerCase().includes(q)
+    const lista = !q ? turmas : turmas.filter(t =>
+      (t.nome||'').toLowerCase().includes(q) || (t.codigo||'').toLowerCase().includes(q)
     );
 
     if(!lista.length){
-      tbody.innerHTML = `<tr><td colspan="7" class="muted">Nenhum aluno encontrado.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="muted">Nenhuma turma encontrada.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = lista.map(a => `
+    tbody.innerHTML = lista.map(t => `
       <tr>
-        <td class="hide-sm">${a.id}</td>
-        <td>${escapeHtml(a.nome||'')}</td>
-        <td>${escapeHtml(a.matricula||'')}</td>
-        <td>${formatDateBR(a.dataNascimento)}</td>
-        <td class="hide-sm">${escapeHtml(a.email||'')}</td>
-        <td class="hide-sm">${escapeHtml(a.telefone||'')}</td>
+        <td class="hide-sm">${t.id}</td>
+        <td>${escapeHtml(t.nome||'')}</td>
+        <td>${escapeHtml(t.codigo||'')}</td>
+        <td>${t.capacidade ?? ''}</td>
+        <td class="hide-sm">${escapeHtml(t.descricao||'')}</td>
         <td class="right">
-          <button class="btn-link" title="Editar" onclick='onEditar(${JSON.stringify(a.id)})'>Editar</button>
-          <button class="btn-link" title="Excluir" onclick='onExcluir(${JSON.stringify(a.id)})'>Excluir</button>
+          <button class="btn-link" title="Editar" onclick='onEditar(${JSON.stringify(t.id)})'>Editar</button>
+          <button class="btn-link" title="Excluir" onclick='onExcluir(${JSON.stringify(t.id)})'>Excluir</button>
         </td>
       </tr>
     `).join('');
   }
 
-  function formatDateBR(iso){
-    if(!iso) return '';
-    // Expecting yyyy-MM-dd
-    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(iso);
-    if(!m) return iso;
-    return `${m[2]}/${m[3]}/${m[1]}`;
-  }
-
   async function onEditar(id){
-    try{
-      const a = await api.get(id);
-      setForm(a);
-    }catch(err){
-      showToast(err.message || 'Erro ao buscar aluno');
-    }
+    try{ const t = await api.get(id); setForm(t); }
+    catch(err){ showToast(err.message || 'Erro ao buscar turma'); }
   }
 
   async function onExcluir(id){
-    const a = alunos.find(x => x.id === id);
-    const nome = a ? ` (${a.nome})` : '';
-    if(!confirm(`Confirma excluir o aluno #${id}${nome}?`)) return;
+    const t = turmas.find(x => x.id === id);
+    const nome = t ? ` (${t.nome})` : '';
+    if(!confirm(`Confirma excluir a turma #${id}${nome}?`)) return;
     try{
       await api.remove(id);
-      alunos = alunos.filter(x => x.id !== id);
+      turmas = turmas.filter(x => x.id !== id);
       render();
-      showToast('Aluno excluído.');
+      showToast('Turma excluída.');
       if($id.value == id){ setForm(); }
-    }catch(err){
-      showToast(err.message || 'Erro ao excluir aluno');
-    }
+    }catch(err){ showToast(err.message || 'Erro ao excluir turma'); }
   }
 
   function showToast(msg){
@@ -329,17 +295,12 @@
   }
 
   async function carregar(){
-    tbody.innerHTML = `<tr><td colspan="7" class="muted">Carregando...</td></tr>`;
-    try {
-      alunos = await api.list();
-    } catch (err) {
-      alunos = [];
-      showToast(err.message || 'Erro ao carregar alunos');
-    }
+    tbody.innerHTML = `<tr><td colspan="6" class="muted">Carregando...</td></tr>`;
+    try { turmas = await api.list(); }
+    catch (err) { turmas = []; showToast(err.message || 'Erro ao carregar turmas'); }
     render();
   }
 
-  // Inicialização
   carregar();
 </script>
 </body>

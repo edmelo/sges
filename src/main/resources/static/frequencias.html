@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SGES - Frequências</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root { --primary:#1f6feb; --danger:#d32f2f; --ok:#2e7d32; --muted:#666; }
+    html, body { margin:0; padding:0; font-family:Segoe UI, Roboto, Arial, Helvetica, sans-serif; background:#f6f8fa; color:#0a0a0a; }
+    header { background:#0d1117; color:#fff; padding:16px 20px; }
+    header .bar { display:flex; gap:16px; align-items:center; }
+    header nav a { color:#c9d1d9; text-decoration:none; margin-left:12px; }
+    header nav a:hover { color:#fff; text-decoration:underline; }
+    main { padding:20px; max-width:1100px; margin:0 auto; }
+    .card { background:#fff; border:1px solid #d0d7de; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+    .card + .card { margin-top:16px; }
+    .card-header { padding:12px 16px; border-bottom:1px solid #d0d7de; }
+    .card-body { padding:16px; }
+    form .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .field { flex:1 1 240px; min-width:220px; }
+    label { display:block; font-size:12px; color:#444; margin-bottom:6px; }
+    input, select { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #c7ccd1; border-radius:6px; font-size:14px; }
+    input:focus, select:focus { outline:2px solid var(--primary); border-color:var(--primary); }
+    .actions { display:flex; gap:10px; margin-top:12px; }
+    button { cursor:pointer; border:1px solid transparent; border-radius:6px; padding:10px 14px; font-weight:600; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-secondary { background:#eaeef2; color:#111; }
+    .muted { color:var(--muted); }
+    table { border-collapse:collapse; width:100%; }
+    th, td { border-bottom:1px solid #e6ebf1; padding:10px 8px; text-align:left; font-size:14px; }
+    th { background:#f0f3f6; font-weight:600; }
+    tr:hover td { background:#fafbfc; }
+    .right { text-align:right; }
+    .errors { margin:0; padding-left:18px; color:var(--danger); }
+    .toast { position:fixed; right:20px; bottom:20px; background:#111; color:#fff; padding:10px 14px; border-radius:8px; opacity:0.95; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #c7ccd1; background:#fff; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1 style="margin:0; font-size:20px; flex:1;">SGES - Frequências</h1>
+    <nav>
+      <a href="/">Alunos</a>
+      <a href="/professores.html">Professores</a>
+      <a href="/turmas.html">Turmas</a>
+      <a href="/avaliacoes.html">Avaliações</a>
+      <a href="/frequencias.html" aria-current="page">Frequências</a>
+      <a href="/comunicacoes.html">Comunicações</a>
+      <a href="/financeiro.html">Financeiro</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-header">
+      <span id="form-title">Lançar Frequência</span>
+    </div>
+    <div class="card-body">
+      <form id="freq-form" novalidate>
+        <div class="row">
+          <div class="field">
+            <label for="turmaId">Turma ID *</label>
+            <input id="turmaId" type="number" required min="1" />
+          </div>
+          <div class="field">
+            <label for="alunoId">Aluno ID *</label>
+            <input id="alunoId" type="number" required min="1" />
+          </div>
+          <div class="field">
+            <label for="data">Data *</label>
+            <input id="data" type="date" required />
+          </div>
+          <div class="field">
+            <label for="status">Status *</label>
+            <select id="status" required>
+              <option value="PRESENTE">Presente</option>
+              <option value="AUSENTE">Ausente</option>
+              <option value="ATRASO">Atraso</option>
+              <option value="JUSTIFICADO">Justificado</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1 1 100%">
+            <label for="observacao">Observação</label>
+            <input id="observacao" type="text" maxlength="255" />
+          </div>
+        </div>
+        <ul id="form-errors" class="errors hidden" aria-live="polite"></ul>
+        <div class="actions">
+          <button type="submit" class="btn-primary">Lançar</button>
+          <button type="button" id="btn-clear" class="btn-secondary">Limpar</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-header">
+      <span id="list-title">Frequências por Turma e Data</span>
+    </div>
+    <div class="card-body">
+      <div class="row" style="margin-bottom:8px; align-items:center;">
+        <div class="field">
+          <label for="f-turma">Turma ID</label>
+          <input id="f-turma" type="number" min="1" />
+        </div>
+        <div class="field">
+          <label for="f-data">Data</label>
+          <input id="f-data" type="date" />
+        </div>
+        <div class="right" style="flex:1;">
+          <button type="button" id="btn-filtrar" class="btn-secondary">Filtrar</button>
+        </div>
+      </div>
+      <div style="overflow:auto;">
+        <table aria-describedby="list-title">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Turma</th>
+            <th>Aluno</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Obs</th>
+          </tr>
+          </thead>
+          <tbody id="tbody-freqs">
+          <tr><td colspan="6" class="muted">Nenhum filtro aplicado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+  function okJson(resp){ if(resp.ok) return resp.json(); return resp.json().catch(()=>({message:resp.statusText})).then(err=>Promise.reject(err)); }
+  function okVoid(resp){ if(resp.ok) return; return resp.json().catch(()=>({message:resp.statusText})).then(err=>Promise.reject(err)); }
+  const toast = document.getElementById('toast');
+  function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.add('hidden'), 2500); }
+  function showErrors(messages){ const ul = document.getElementById('form-errors'); ul.innerHTML = messages.map(m=>`<li>${m}</li>`).join(''); ul.classList.remove('hidden'); }
+  function clearErrors(){ const ul = document.getElementById('form-errors'); ul.innerHTML = ''; ul.classList.add('hidden'); }
+
+  const $turma = document.getElementById('turmaId');
+  const $aluno = document.getElementById('alunoId');
+  const $data = document.getElementById('data');
+  const $status = document.getElementById('status');
+  const $obs = document.getElementById('observacao');
+
+  document.getElementById('btn-clear').addEventListener('click', ()=>{ $turma.value=''; $aluno.value=''; $data.value=''; $status.value='PRESENTE'; $obs.value=''; clearErrors(); });
+
+  document.getElementById('freq-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    clearErrors();
+    if(!$turma.value || !$aluno.value || !$data.value || !$status.value){ showErrors(['Preencha os campos obrigatórios.']); return; }
+    const payload = { turmaId: Number($turma.value), alunoId: Number($aluno.value), data: $data.value, status: $status.value, observacao: $obs.value || null };
+    try{
+      const r = await fetch('/api/frequencias', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).then(okJson);
+      showToast('Frequência lançada.');
+    }catch(err){ showErrors([err.message || 'Erro ao lançar frequência']); }
+  });
+
+  const $fTurma = document.getElementById('f-turma');
+  const $fData = document.getElementById('f-data');
+  const $tbody = document.getElementById('tbody-freqs');
+  document.getElementById('btn-filtrar').addEventListener('click', carregar);
+  function formatDateBR(iso){ if(!iso) return ''; const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); if(!m) return iso; return `${m[2]}/${m[3]}/${m[1]}`; }
+  async function carregar(){
+    $tbody.innerHTML = `<tr><td colspan="6" class="muted">Carregando...</td></tr>`;
+    const turmaId = $fTurma.value; const data = $fData.value;
+    if(!turmaId || !data){ $tbody.innerHTML = `<tr><td colspan="6" class="muted">Informe Turma e Data.</td></tr>`; return; }
+    try{
+      const list = await fetch(`/api/frequencias?turmaId=${encodeURIComponent(turmaId)}&data=${encodeURIComponent(data)}`).then(okJson);
+      if(!list.length){ $tbody.innerHTML = `<tr><td colspan="6" class="muted">Nenhum registro encontrado.</td></tr>`; return; }
+      $tbody.innerHTML = list.map(f => `
+        <tr>
+          <td>${f.id}</td>
+          <td>${f.turmaId}</td>
+          <td>${f.alunoId}</td>
+          <td>${formatDateBR(f.data)}</td>
+          <td>${f.status}</td>
+          <td>${(f.observacao||'')}</td>
+        </tr>
+      `).join('');
+    }catch(err){ $tbody.innerHTML = `<tr><td colspan="6" class="muted">${err.message||'Erro ao buscar.'}</td></tr>`; }
+  }
+</script>
+</body>
+</html>
